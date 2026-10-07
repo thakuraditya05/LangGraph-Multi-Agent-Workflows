@@ -29,18 +29,40 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 
 
 load_dotenv()
-os.environ.setdefault(
-    "GEMINI_API_KEY_2",
-    os.getenv("GEMINI_API_KEY_TOOL") or os.getenv("GEMINI_API_KEY", ""),
-)
+
+
+def _get_gemini_api_key() -> str:
+    """Resolve the tool agent key from env or Streamlit Cloud secrets."""
+    for name in ("GEMINI_API_KEY_2", "GEMINI_API_KEY_TOOL", "GEMINI_API_KEY"):
+        value = os.getenv(name)
+        if value and value.strip():
+            return value.strip()
+
+    # Streamlit Cloud secrets are not automatically exported as environment
+    # variables. Keep this lookup optional so importing the backend elsewhere
+    # does not require Streamlit configuration.
+    try:
+        import streamlit as st
+
+        for name in ("GEMINI_API_KEY_2", "GEMINI_API_KEY_TOOL", "GEMINI_API_KEY"):
+            value = st.secrets.get(name)
+            if value and str(value).strip():
+                return str(value).strip()
+    except Exception:
+        pass
+
+    raise RuntimeError(
+        "Gemini API key is missing. Set GEMINI_API_KEY_2 (or GEMINI_API_KEY_TOOL / "
+        "GEMINI_API_KEY) in the deployment environment or Streamlit secrets."
+    )
 
 # -------------------
 # 1. LLM
 # -------------------
 llm = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash-lite", # Ya jo tumhara current working model ho
+    model="gemini-3.5-flash-lite",
     temperature=0,
-    google_api_key=os.environ.get("GEMINI_API_KEY_2")
+    google_api_key=_get_gemini_api_key(),
 )
 
 
