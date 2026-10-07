@@ -168,7 +168,7 @@ elif selected_app == "Corrective RAG":
     render_crag_ui()
 
 elif selected_app == "Self-RAG":
-    from self_rag.langgraph_frontend import render_self_rag_ui
+    from self_rag.langraph_frontend import render_self_rag_ui
     render_self_rag_ui()
 
 elif selected_app == "Tool-Connected LLM":
